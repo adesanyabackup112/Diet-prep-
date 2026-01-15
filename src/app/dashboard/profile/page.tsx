@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, Target, Activity } from "lucide-react";
+import { Loader2, User, Target, Activity, Bell, LogOut } from "lucide-react";
 
 const activityLevels = [
   { value: "sedentary", label: "Sedentary", description: "Little or no exercise" },
@@ -33,6 +33,7 @@ export default function ProfilePage() {
     targetWeight: "",
     activityLevel: "moderate",
     goal: "maintain",
+    notificationEmail: "",
   });
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function ProfilePage() {
               targetWeight: data.profile.targetWeight?.toString() || "",
               activityLevel: data.profile.activityLevel || "moderate",
               goal: data.profile.goal || "maintain",
+              notificationEmail: data.profile.notificationEmail || "",
             });
           }
         }
@@ -107,6 +109,7 @@ export default function ProfilePage() {
           activityLevel: formData.activityLevel,
           goal: formData.goal,
           dailyCalories,
+          notificationEmail: formData.notificationEmail || null,
         }),
       });
 
@@ -282,6 +285,22 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                <div className="space-y-3 border-t border-zinc-200 dark:border-zinc-700 pt-6">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-emerald-500" />
+                    Notification Email
+                  </label>
+                  <p className="text-xs text-zinc-500">
+                    Email address for meal reminders. Leave empty to use your account email.
+                  </p>
+                  <Input
+                    type="email"
+                    placeholder={session?.user?.email || "your@email.com"}
+                    value={formData.notificationEmail}
+                    onChange={(e) => setFormData({ ...formData, notificationEmail: e.target.value })}
+                  />
+                </div>
+
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
@@ -325,7 +344,7 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>Account</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div>
                 <div className="text-sm text-zinc-500">Email</div>
                 <div className="font-medium text-zinc-900 dark:text-white">
@@ -337,6 +356,16 @@ export default function ProfilePage() {
                 <div className="font-medium text-zinc-900 dark:text-white">
                   {session?.user?.name || "Not set"}
                 </div>
+              </div>
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-700">
+                <Button
+                  variant="outline"
+                  className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </Button>
               </div>
             </CardContent>
           </Card>

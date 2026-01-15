@@ -16,6 +16,20 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+const mealSlotLabels: Record<string, string> = {
+  breakfast: "Breakfast",
+  lunch: "Lunch",
+  dinner: "Dinner",
+  snack: "Snack",
+};
+
+const mealSlotIcons: Record<string, string> = {
+  breakfast: "🌅",
+  lunch: "☀️",
+  dinner: "🌙",
+  snack: "🍎",
+};
+
 async function getDashboardData(userId: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -30,7 +44,7 @@ async function getDashboardData(userId: string) {
         gte(foodLogs.loggedAt, today),
         lt(foodLogs.loggedAt, tomorrow)
       )
-    ),
+    ).orderBy(desc(foodLogs.loggedAt)),
     db.select().from(meals).where(eq(meals.userId, userId)).orderBy(desc(meals.createdAt)).limit(5),
   ]);
 
@@ -46,14 +60,31 @@ async function getDashboardData(userId: string) {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
 
-  return { profile, totals, recentMeals, logsCount: todayLogs.length };
+  // Group logs by meal type
+  const logsByMealType: Record<string, typeof todayLogs> = {
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+    snack: [],
+  };
+  
+  todayLogs.forEach((log) => {
+    const mealType = log.mealType?.toLowerCase() || "snack";
+    if (logsByMealType[mealType]) {
+      logsByMealType[mealType].push(log);
+    } else {
+      logsByMealType.snack.push(log);
+    }
+  });
+
+  return { profile, totals, recentMeals, todayLogs, logsByMealType, logsCount: todayLogs.length };
 }
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const { profile, totals, recentMeals, logsCount } = await getDashboardData(session.user.id);
+  const { profile, totals, recentMeals, logsByMealType, logsCount } = await getDashboardData(session.user.id);
   
   const dailyCalories = profile?.dailyCalories || 2000;
   const calorieProgress = Math.min((totals.calories / dailyCalories) * 100, 100);
@@ -165,7 +196,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-emerald-500" />
-                Today&apos;s Log
+                Today&apos;s Meals
               </CardTitle>
               <span className="text-sm text-zinc-500">{logsCount} entries</span>
             </div>
@@ -186,10 +217,51 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
+              <div className="space-y-4">
+                {/* Meal slots */}
+                {["breakfast", "lunch", "dinner", "snack"].map((slot) => {
+                  const slotLogs = logsByMealType[slot] || [];
+                  const slotCalories = slotLogs.reduce((sum, log) => sum + log.calories, 0);
+                  
+                  return (
+                    <div key={slot} className="border-b border-zinc-100 dark:border-zinc-800 pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{mealSlotIcons[slot]}</span>
+                          <span className="font-medium text-zinc-900 dark:text-white">
+                            {mealSlotLabels[slot]}
+                          </span>
+                        </div>
+                        {slotLogs.length > 0 && (
+                          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                            {slotCalories} kcal
+                          </span>
+                        )}
+                      </div>
+                      {slotLogs.length > 0 ? (
+                        <div className="space-y-1 ml-7">
+                          {slotLogs.map((log) => (
+                            <div key={log.id} className="flex items-center justify-between text-sm">
+                              <span className="text-zinc-600 dark:text-zinc-400 truncate">
+                                {log.foodName}
+                              </span>
+                              <span className="text-zinc-500 ml-2 shrink-0">
+                                {log.calories} kcal
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-zinc-400 ml-7">No {slot} logged</p>
+                      )}
+                    </div>
+                  );
+                })}
+                
+                {/* Total and add button */}
+                <div className="flex items-center justify-between rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30 mt-4">
                   <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                    Total Calories Today
+                    Total Today
                   </span>
                   <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
                     {totals.calories} kcal

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { age, weight, height, targetWeight, activityLevel, goal, dailyCalories } =
+    const { age, weight, height, targetWeight, activityLevel, goal, dailyCalories, notificationEmail } =
       await request.json();
 
     // Check if profile exists
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
           activityLevel,
           goal,
           dailyCalories,
+          notificationEmail,
           updatedAt: new Date(),
         })
         .where(eq(profiles.userId, session.user.id))
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
           activityLevel,
           goal,
           dailyCalories,
+          notificationEmail,
         })
         .returning();
     }

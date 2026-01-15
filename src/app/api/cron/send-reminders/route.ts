@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, plannedMeals, users } from "@/db";
+import { db, plannedMeals, users, profiles } from "@/db";
 import { eq, and, isNotNull } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +26,11 @@ export async function GET(request: Request) {
         meal: plannedMeals,
         userEmail: users.email,
         userName: users.name,
+        notificationEmail: profiles.notificationEmail,
       })
       .from(plannedMeals)
       .innerJoin(users, eq(plannedMeals.userId, users.id))
+      .leftJoin(profiles, eq(users.id, profiles.userId))
       .where(
         and(
           isNotNull(plannedMeals.reminderTime),
@@ -46,10 +48,12 @@ export async function GET(request: Request) {
     const results = [];
     for (const item of remindersToSend) {
       try {
+        // Use notification email from profile if set, otherwise use account email
+        const emailTo = item.notificationEmail || item.userEmail;
+        
         // Send email using fetch to an email service
-        // For now, we'll use a simple approach - you can integrate with SendGrid, Resend, etc.
         const emailSent = await sendReminderEmail({
-          to: item.userEmail,
+          to: emailTo,
           userName: item.userName || "there",
           mealTitle: item.meal.title,
           mealType: item.meal.mealType,

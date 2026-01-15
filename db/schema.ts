@@ -23,6 +23,7 @@ export const profiles = pgTable('profiles', {
   activityLevel: varchar('activity_level', { length: 50 }), // sedentary, light, moderate, active, very_active
   goal: varchar('goal', { length: 50 }), // lose, maintain, gain
   dailyCalories: integer('daily_calories'), // calculated target
+  notificationEmail: varchar('notification_email', { length: 255 }), // email for meal reminders
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

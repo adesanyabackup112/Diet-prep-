@@ -70,6 +70,8 @@ export const plannedMeals = pgTable('planned_meals', {
   carbs: real('carbs'),
   fat: real('fat'),
   plannedDate: timestamp('planned_date').notNull(), // the date this meal is planned for
+  reminderTime: varchar('reminder_time', { length: 10 }), // HH:MM format for reminder
+  reminderSent: integer('reminder_sent').default(0), // 0 = not sent, 1 = sent
   isCompleted: integer('is_completed').default(0), // 0 = not completed, 1 = completed/logged
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

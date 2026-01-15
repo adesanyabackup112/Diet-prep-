@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, description, mealType, calories, protein, carbs, fat, plannedDate } = body;
+    const { title, description, mealType, calories, protein, carbs, fat, plannedDate, reminderTime } = body;
 
     if (!title || !mealType || !plannedDate) {
       return NextResponse.json(
@@ -77,6 +77,8 @@ export async function POST(request: Request) {
         carbs: carbs || null,
         fat: fat || null,
         plannedDate: new Date(plannedDate),
+        reminderTime: reminderTime || null,
+        reminderSent: 0,
         isCompleted: 0,
       })
       .returning();

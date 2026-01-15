@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Plus, X, Loader2, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, Loader2, Trash2, Bell } from "lucide-react";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const mealSlots = ["breakfast", "lunch", "dinner", "snack"];
@@ -25,6 +25,8 @@ type PlannedMeal = {
   carbs?: number;
   fat?: number;
   plannedDate: string;
+  reminderTime?: string;
+  reminderSent?: number;
   isCompleted: number;
 };
 
@@ -43,6 +45,7 @@ export default function PlannerPage() {
     protein: "",
     carbs: "",
     fat: "",
+    reminderTime: "",
   });
 
   const getWeekDates = useCallback(() => {
@@ -82,6 +85,7 @@ export default function PlannerPage() {
   }, [currentDate]);
 
   const goToPreviousWeek = () => {
+    if (isCurrentWeek()) return; // Don't go to past weeks
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() - 7);
     setCurrentDate(newDate);
@@ -106,6 +110,26 @@ export default function PlannerPage() {
     );
   };
 
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate < today;
+  };
+
+  const isCurrentWeek = () => {
+    const today = new Date();
+    const startOfCurrentWeek = new Date(today);
+    startOfCurrentWeek.setDate(today.getDate() - today.getDay());
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    
+    const weekStart = new Date(weekDates[0]);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    return weekStart.getTime() === startOfCurrentWeek.getTime();
+  };
+
   const formatMonth = () => {
     const months = weekDates.map((d) => d.getMonth());
     const uniqueMonths = [...new Set(months)];
@@ -126,7 +150,7 @@ export default function PlannerPage() {
   const openAddModal = (date: Date, slot: string) => {
     setSelectedDate(date);
     setSelectedSlot(slot);
-    setFormData({ title: "", description: "", calories: "", protein: "", carbs: "", fat: "" });
+    setFormData({ title: "", description: "", calories: "", protein: "", carbs: "", fat: "", reminderTime: "" });
     setShowModal(true);
   };
 
@@ -147,6 +171,7 @@ export default function PlannerPage() {
           carbs: formData.carbs ? parseFloat(formData.carbs) : null,
           fat: formData.fat ? parseFloat(formData.fat) : null,
           plannedDate: selectedDate.toISOString(),
+          reminderTime: formData.reminderTime || null,
         }),
       });
 
@@ -195,7 +220,13 @@ export default function PlannerPage() {
               <Button variant="outline" size="sm" onClick={goToToday} className="text-xs sm:text-sm">
                 Today
               </Button>
-              <Button variant="outline" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={goToPreviousWeek} 
+                className="h-8 w-8"
+                disabled={isCurrentWeek()}
+              >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="icon" onClick={goToNextWeek} className="h-8 w-8">
@@ -248,11 +279,16 @@ export default function PlannerPage() {
                     </div>
                     {weekDates.map((date, i) => {
                       const slotMeals = getMealsForSlot(date, slot);
+                      const past = isPastDate(date);
                       return (
                         <div
                           key={i}
-                          onClick={() => openAddModal(date, slot)}
-                          className={`min-h-[60px] sm:min-h-[80px] rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 p-1 sm:p-2 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/20 transition-colors cursor-pointer ${
+                          onClick={() => !past && openAddModal(date, slot)}
+                          className={`min-h-[60px] sm:min-h-[80px] rounded-lg border border-dashed p-1 sm:p-2 transition-colors ${
+                            past 
+                              ? "border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 cursor-not-allowed opacity-50" 
+                              : "border-zinc-200 dark:border-zinc-700 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/20 cursor-pointer"
+                          } ${
                             isToday(date) ? "bg-emerald-50/30 dark:bg-emerald-950/10" : ""
                           }`}
                         >
@@ -283,7 +319,7 @@ export default function PlannerPage() {
                             </div>
                           ) : (
                             <div className="flex items-center justify-center h-full">
-                              <Plus className="h-4 w-4 text-zinc-300 dark:text-zinc-600" />
+                              {!past && <Plus className="h-4 w-4 text-zinc-300 dark:text-zinc-600" />}
                             </div>
                           )}
                         </div>
@@ -426,6 +462,22 @@ export default function PlannerPage() {
                     className="mt-1"
                   />
                 </div>
+              </div>
+
+              <div className="border-t border-zinc-200 dark:border-zinc-700 pt-3">
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-emerald-500" />
+                  Email Reminder (optional)
+                </label>
+                <p className="text-xs text-zinc-500 mb-2">
+                  Get an email reminder at this time on the day of the meal
+                </p>
+                <Input
+                  type="time"
+                  value={formData.reminderTime}
+                  onChange={(e) => setFormData({ ...formData, reminderTime: e.target.value })}
+                  className="mt-1"
+                />
               </div>
             </div>
 

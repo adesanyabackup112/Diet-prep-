@@ -58,6 +58,23 @@ export const foodLogs = pgTable('food_logs', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Planned meals table - for meal planning calendar
+export const plannedMeals = pgTable('planned_meals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  mealType: varchar('meal_type', { length: 50 }).notNull(), // breakfast, lunch, dinner, snack
+  calories: integer('calories'),
+  protein: real('protein'),
+  carbs: real('carbs'),
+  fat: real('fat'),
+  plannedDate: timestamp('planned_date').notNull(), // the date this meal is planned for
+  isCompleted: integer('is_completed').default(0), // 0 = not completed, 1 = completed/logged
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
@@ -66,6 +83,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   meals: many(meals),
   foodLogs: many(foodLogs),
+  plannedMeals: many(plannedMeals),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -89,6 +107,13 @@ export const foodLogsRelations = relations(foodLogs, ({ one }) => ({
   }),
 }));
 
+export const plannedMealsRelations = relations(plannedMeals, ({ one }) => ({
+  user: one(users, {
+    fields: [plannedMeals.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -98,3 +123,5 @@ export type Meal = typeof meals.$inferSelect;
 export type NewMeal = typeof meals.$inferInsert;
 export type FoodLog = typeof foodLogs.$inferSelect;
 export type NewFoodLog = typeof foodLogs.$inferInsert;
+export type PlannedMeal = typeof plannedMeals.$inferSelect;
+export type NewPlannedMeal = typeof plannedMeals.$inferInsert;

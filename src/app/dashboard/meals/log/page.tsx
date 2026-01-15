@@ -187,30 +187,29 @@ export default function LogFoodPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-              Log Food
-            </h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Track what you&apos;ve eaten today
-            </p>
-          </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - compact on mobile */}
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="md:hidden">
+          <Button variant="ghost" size="icon" className="h-10 w-10">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
+            Log Food
+          </h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 hidden sm:block">
+            Track what you&apos;ve eaten today
+          </p>
         </div>
       </div>
 
-      {/* Mode Toggle */}
-      <div className="flex gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg w-fit">
+      {/* Mode Toggle - full width on mobile */}
+      <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl w-full sm:w-fit">
         <button
           onClick={() => setMode("simple")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+          className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
             mode === "simple"
               ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
               : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
@@ -221,7 +220,7 @@ export default function LogFoodPage() {
         </button>
         <button
           onClick={() => setMode("advanced")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+          className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
             mode === "advanced"
               ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
               : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"

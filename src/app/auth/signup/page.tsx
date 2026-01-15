@@ -92,8 +92,8 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-zinc-950 dark:to-zinc-900 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-zinc-950 dark:to-zinc-900 p-4 safe-area-inset">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
             <Utensils className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />

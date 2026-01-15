@@ -65,102 +65,98 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-            Welcome back{session.user.name ? `, ${session.user.name}` : ""}!
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Track your nutrition and reach your goals
-          </p>
-        </div>
-        <Link href="/dashboard/meals/log">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Log Food
-          </Button>
-        </Link>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Welcome section - compact on mobile */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
+          Hi{session.user.name ? `, ${session.user.name}` : ""}! 👋
+        </h1>
+        <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
+          Track your nutrition and reach your goals
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Calories
-            </CardTitle>
-            <Flame className="h-5 w-5 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-900 dark:text-white">
-              {totals.calories}
-              <span className="text-sm font-normal text-zinc-500"> / {dailyCalories}</span>
+      {/* Calorie ring - prominent on mobile */}
+      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 sm:p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-emerald-100 text-sm">Today&apos;s Calories</p>
+            <p className="text-3xl sm:text-4xl font-bold mt-1">{totals.calories}</p>
+            <p className="text-emerald-100 text-sm mt-1">of {dailyCalories} kcal</p>
+          </div>
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth="12"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="white"
+                strokeWidth="12"
+                strokeLinecap="round"
+                strokeDasharray={`${calorieProgress * 2.51} 251`}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-lg sm:text-xl font-bold">{Math.round(calorieProgress)}%</span>
             </div>
-            <Progress value={calorieProgress} className="mt-3" />
-            <p className="mt-2 text-xs text-zinc-500">
-              {dailyCalories - totals.calories > 0 
-                ? `${dailyCalories - totals.calories} remaining`
-                : "Goal reached!"}
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <Link href="/dashboard/meals/log" className="flex-1">
+            <Button variant="secondary" className="w-full bg-white/20 hover:bg-white/30 text-white border-0">
+              <Plus className="mr-2 h-4 w-4" />
+              Log Food
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Protein
-            </CardTitle>
-            <Beef className="h-5 w-5 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-900 dark:text-white">
-              {Math.round(totals.protein)}g
-              <span className="text-sm font-normal text-zinc-500"> / {macroTargets.protein}g</span>
+      {/* Macro cards - horizontal scroll on mobile */}
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 hide-scrollbar">
+        <div className="flex-shrink-0 w-28 sm:w-auto bg-white dark:bg-zinc-900 rounded-xl p-3 border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 rounded-lg bg-red-100 dark:bg-red-900/30">
+              <Beef className="h-4 w-4 text-red-500" />
             </div>
-            <Progress 
-              value={Math.min((totals.protein / macroTargets.protein) * 100, 100)} 
-              className="mt-3" 
-            />
-          </CardContent>
-        </Card>
+            <span className="text-xs text-zinc-500">Protein</span>
+          </div>
+          <p className="text-lg font-bold text-zinc-900 dark:text-white">{Math.round(totals.protein)}g</p>
+          <p className="text-xs text-zinc-400">/ {macroTargets.protein}g</p>
+          <Progress value={Math.min((totals.protein / macroTargets.protein) * 100, 100)} className="mt-2 h-1.5" />
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Carbs
-            </CardTitle>
-            <Wheat className="h-5 w-5 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-900 dark:text-white">
-              {Math.round(totals.carbs)}g
-              <span className="text-sm font-normal text-zinc-500"> / {macroTargets.carbs}g</span>
+        <div className="flex-shrink-0 w-28 sm:w-auto bg-white dark:bg-zinc-900 rounded-xl p-3 border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+              <Wheat className="h-4 w-4 text-amber-500" />
             </div>
-            <Progress 
-              value={Math.min((totals.carbs / macroTargets.carbs) * 100, 100)} 
-              className="mt-3" 
-            />
-          </CardContent>
-        </Card>
+            <span className="text-xs text-zinc-500">Carbs</span>
+          </div>
+          <p className="text-lg font-bold text-zinc-900 dark:text-white">{Math.round(totals.carbs)}g</p>
+          <p className="text-xs text-zinc-400">/ {macroTargets.carbs}g</p>
+          <Progress value={Math.min((totals.carbs / macroTargets.carbs) * 100, 100)} className="mt-2 h-1.5" />
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Fat
-            </CardTitle>
-            <Droplets className="h-5 w-5 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-900 dark:text-white">
-              {Math.round(totals.fat)}g
-              <span className="text-sm font-normal text-zinc-500"> / {macroTargets.fat}g</span>
+        <div className="flex-shrink-0 w-28 sm:w-auto bg-white dark:bg-zinc-900 rounded-xl p-3 border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <Droplets className="h-4 w-4 text-blue-500" />
             </div>
-            <Progress 
-              value={Math.min((totals.fat / macroTargets.fat) * 100, 100)} 
-              className="mt-3" 
-            />
-          </CardContent>
-        </Card>
+            <span className="text-xs text-zinc-500">Fat</span>
+          </div>
+          <p className="text-lg font-bold text-zinc-900 dark:text-white">{Math.round(totals.fat)}g</p>
+          <p className="text-xs text-zinc-400">/ {macroTargets.fat}g</p>
+          <Progress value={Math.min((totals.fat / macroTargets.fat) * 100, 100)} className="mt-2 h-1.5" />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
